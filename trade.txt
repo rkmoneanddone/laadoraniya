@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Top NSE Volume Stocks Today</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body class="bg-light">
+  <div class="container my-5">
+    <h2 class="text-center mb-4">📈 High Volume NSE Stocks Today</h2>
+    <canvas id="volumeChart" height="100"></canvas>
+    <div class="mt-4">
+      <table class="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th>Stock</th>
+            <th>Volume</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody id="stockTable">
+          <!-- Filled by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const stockSymbols = ["RELIANCE.BO", "TCS.BO", "INFY.BO", "HDFCBANK.BO", "SBIN.BO"]; // Yahoo Finance symbols
+
+    async function fetchData(symbols) {
+      const results = [];
+      for (let symbol of symbols) {
+        const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const info = data.quoteResponse.result[0];
+        results.push({
+          name: info.shortName,
+          volume: info.regularMarketVolume,
+          price: info.regularMarketPrice
+        });
+      }
+      return results;
+    }
+
+    function renderChart(stocks) {
+      const ctx = document.getElementById('volumeChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: stocks.map(s => s.name),
+          datasets: [{
+            label: 'Trading Volume',
+            data: stocks.map(s => s.volume),
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+          }]
+        }
+      });
+    }
+
+    function renderTable(stocks) {
+      const table = document.getElementById("stockTable");
+      stocks.forEach(s => {
+        const row = `<tr>
+                      <td>${s.name}</td>
+                      <td>${s.volume.toLocaleString()}</td>
+                      <td>₹${s.price.toFixed(2)}</td>
+                    </tr>`;
+        table.innerHTML += row;
+      });
+    }
+
+    async function loadPage() {
+      const stocks = await fetchData(stockSymbols);
+      renderChart(stocks);
+      renderTable(stocks);
+    }
+
+    loadPage();
+  </script>
+</body>
+</html>
